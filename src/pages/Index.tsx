@@ -2,8 +2,17 @@ import { useState } from "react";
 import AuthScreen from "@/components/AuthScreen";
 import TestSelection from "@/components/TestSelection";
 import TestInterface from "@/components/TestInterface";
+import AdminLogin from "@/components/AdminLogin";
+import AdminPanel from "@/components/AdminPanel";
+import TestEditor from "@/components/TestEditor";
 
-type AppState = "auth" | "test-selection" | "test-taking" | "admin";
+type AppState =
+  | "auth"
+  | "test-selection"
+  | "test-taking"
+  | "admin-login"
+  | "admin-panel"
+  | "test-editor";
 
 interface Test {
   id: string;
@@ -23,6 +32,7 @@ interface Test {
 const Index = () => {
   const [currentState, setCurrentState] = useState<AppState>("auth");
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [editingTest, setEditingTest] = useState<any | null>(null);
 
   // Демо тест с вопросами
   const demoTest: Test = {
@@ -68,8 +78,28 @@ const Index = () => {
     if (role === "guest") {
       setCurrentState("test-selection");
     } else {
-      setCurrentState("admin");
+      setCurrentState("admin-login");
     }
+  };
+
+  const handleAdminLogin = () => {
+    setCurrentState("admin-panel");
+  };
+
+  const handleCreateTest = () => {
+    setEditingTest(null);
+    setCurrentState("test-editor");
+  };
+
+  const handleEditTest = (test: any) => {
+    setEditingTest(test);
+    setCurrentState("test-editor");
+  };
+
+  const handleSaveTest = (testData: any) => {
+    console.log("Сохранение теста:", testData);
+    alert("Тест сохранен!");
+    setCurrentState("admin-panel");
   };
 
   const handleTestSelect = (test: any) => {
@@ -88,8 +118,12 @@ const Index = () => {
       setCurrentState("auth");
     } else if (currentState === "test-taking") {
       setCurrentState("test-selection");
-    } else if (currentState === "admin") {
+    } else if (currentState === "admin-login") {
       setCurrentState("auth");
+    } else if (currentState === "admin-panel") {
+      setCurrentState("auth");
+    } else if (currentState === "test-editor") {
+      setCurrentState("admin-panel");
     }
   };
 
@@ -111,23 +145,24 @@ const Index = () => {
         />
       )}
 
-      {currentState === "admin" && (
-        <div className="min-h-screen flex items-center justify-center bg-white p-4">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-              Панель администратора
-            </h1>
-            <p className="text-gray-600 mb-4">
-              Здесь будет интерфейс управления тестами
-            </p>
-            <button
-              onClick={handleBack}
-              className="text-purple-500 hover:text-purple-600"
-            >
-              ← Назад
-            </button>
-          </div>
-        </div>
+      {currentState === "admin-login" && (
+        <AdminLogin onLogin={handleAdminLogin} onBack={handleBack} />
+      )}
+
+      {currentState === "admin-panel" && (
+        <AdminPanel
+          onCreateTest={handleCreateTest}
+          onEditTest={handleEditTest}
+          onBack={handleBack}
+        />
+      )}
+
+      {currentState === "test-editor" && (
+        <TestEditor
+          test={editingTest}
+          onSave={handleSaveTest}
+          onBack={handleBack}
+        />
       )}
     </div>
   );
